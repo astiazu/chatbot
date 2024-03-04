@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Chat del Valle</title>
+    <link rel="stylesheet" href="{{url_for('static',filename='css/styles.css')}}">
+</head>
+
+<body>
+    <h1>El Inicio del ChatBotdelValle</h1>
+
+    <div id="chatbot-container">
+        <div id="chatbot-header" onclick="toggleChatbot()">Chatbot</div>
+        <div id="chatbot-body" style="display: none">
+            <div id="chatbot-messages"></div>
+            <input type="text" id="chat-input" placeholder="escribe tu mensaje"/>
+            <button onclick="sendMessages()">Enviar</button>
+        </div>
+    </div>
+</body>
+
+<script> 
+    function toggleChatbot() {
+        var chatBody = document.getElementById("chatbot-body");
+        chatBody.style.display = chatBody.style.display === "none" ? "block": "none";
+    }
+
+    function sendMessages(){
+        var input = document.getElementById("chat-input");
+        var message = input.value;
+        input.value = "";
+    
+        fetch("/chatbot", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: `message="${encodeURIComponent(message)}"`,
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            var chatMessages = document.getElementById("chatbot-messages");
+            chatMessages.innerHTML += `<div class ="message-user">Tu : ${message}</div>`;
+            
+            // Verificar si la respuesta no es nula antes de mostrarla
+            if (data.response !== null) {
+                chatMessages.innerHTML += `<div class="message-bot">Dodi : ${data.response}</div>`;
+            } else {
+                // Manejar el caso de respuesta nula según tus necesidades
+                console.error("La respuesta del servidor es nula.");
+            }
+    
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        })
+        .catch((error) => console.error("Error: ", error));
+    }
+
+    function handleEnter(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendMessages();
+        }
+    }
+
+    window.onload = function() {
+        var chatInput = document.getElementById("chat-input");
+        chatInput.addEventListener("keypress", handleEnter);
+    };
+</script>
+
+</html>
